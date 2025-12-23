@@ -1,4 +1,4 @@
-# Core
+﻿# Core
 numpy>=1.23,<2.0
 opencv-python>=4.7,<4.9
 pygame>=2.1,<2.6
