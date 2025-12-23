@@ -8,6 +8,7 @@ import time
 from threading import Thread, Lock
 import math
 import numpy as np
+
 #hand recognition imports
 #
 #using the mediapipe library 
@@ -20,10 +21,11 @@ mp_hands = mp.solutions.hands
     
 
 #self made imports
-from window_logic import Config
+from window_logic import Config, Logic
 from inputs import Image
 image = Image()
 config = Config()
+logic = Logic()
 
 # Module-level state for change detection
 
@@ -39,6 +41,8 @@ class Hands_Reckon:
         self.ret = False
         self.frame = None
         self.running = True
+        self.indexThumbDistance = 0
+        self.hand_scale = 0
         self.newXcopy = 0
         self.newYcopy = 0
         self.new_side_x = 0
@@ -51,7 +55,7 @@ class Hands_Reckon:
             model_complexity = 0, 
             min_detection_confidence = 0.5,
             min_tracking_confidence = 0.5,
-            max_num_hands = 1) as hands:
+            max_num_hands = 2) as hands:
             while self.cap.isOpened() and self.running:
                 ret, frame = self.cap.read()
                 if not ret:
@@ -72,39 +76,14 @@ class Hands_Reckon:
                         mp_drawing_styles.get_default_hand_connections_style()
                     )
                     self.hand_landmarks = hand_landmarks
-                    #'''
-                    indexThumbDistance = math.sqrt(
-                        ((self.hand_landmarks.landmark[4].x-
-                        self.hand_landmarks.landmark[8].x)*config.side_x)**2+
-                        ((self.hand_landmarks.landmark[4].y-
-                         self.hand_landmarks.landmark[8].y)*config.side_y)**2
-                        )
-                    #print(indexThumbDistance)
-                    mScale = self.hand_landmarks.landmark[9]
-                    hand_scale = [
-                        self.hand_landmarks.landmark[0].x*config.side_x, 
-                        self.hand_landmarks.landmark[0].y*config.side_y,
-                        mScale.x*config.side_x,
-                        mScale.y*config.side_y
-                        ]
-                    scale_for_hand = math.sqrt((hand_scale[0]-hand_scale[2])**2+(hand_scale[1]-hand_scale[3])**2)
-                    scale = indexThumbDistance/scale_for_hand
-                    #time.sleep(2)
-                    print('scale for hand',scale_for_hand, 'indexthdist', indexThumbDistance)
-                    s, x = config.scaling(scale)
-                    print('scale', scale)
-                    #print(s,x)
-                    self.newXcopy = self.new_side_x
-                    self.newYcopy = self.new_side_y
-                    self.new_side_x = int(s)
-                    self.new_side_y = int(s*(config.side_y/config.side_x))
-                    
-                    #'''
+                    if config.doImageScaling == True:
+                        #print('yay')
+                        self.scaling()
+                    if config.openWebApps == True:
+                        self.openWebApps()
                 self.ret = True
                 self.frame = frame.copy()
-                #print('line 64 done')
                 #time.sleep(Config.delay)
-                #print('imshow done')
     
     def show_recon(self):
         if not self.ret:
@@ -119,6 +98,65 @@ class Hands_Reckon:
         frame_rgb = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
         frame_rgb = cv2.resize(frame_rgb, (size[0], size[1]))
         cv2.imshow('tracker', cv2.flip(frame_rgb, 1))
+    
+    def scaling(self):
+        self.indexThumbDistance = math.sqrt(
+            ((self.hand_landmarks.landmark[4].x-
+            self.hand_landmarks.landmark[8].x)*config.side_x)**2+
+            ((self.hand_landmarks.landmark[4].y-
+            self.hand_landmarks.landmark[8].y)*config.side_y)**2
+            )
+        #print(indexThumbDistance)
+        mScale = self.hand_landmarks.landmark[9]
+        self.hand_scale = [
+            self.hand_landmarks.landmark[0].x*config.side_x, 
+            self.hand_landmarks.landmark[0].y*config.side_y,
+            mScale.x*config.side_x,
+            mScale.y*config.side_y
+            ]
+        self.scale_for_hand = math.sqrt((self.hand_scale[0]-self.hand_scale[2])**2+(self.hand_scale[1]-self.hand_scale[3])**2)
+        scale = self.indexThumbDistance/self.scale_for_hand
+        x, y = logic.scaling(scale) # y would be the y height though not used to keep the best ratio
+        self.newXcopy = self.new_side_x
+        self.newYcopy = self.new_side_y
+        self.new_side_x = int(x)
+        self.new_side_y = int(x*(768/1366)) # y height calculated with the x length and its window ratio
+    
+    def openWebApps(self):
+        
+        Wrist = [self.hand_landmarks.landmark[0].x, self.hand_landmarks.landmark[0].y]
+        Thumb = [self.hand_landmarks.landmark[4].x, self.hand_landmarks.landmark[4].y]
+        I_finger = [self.hand_landmarks.landmark[8].x, self.hand_landmarks.landmark[8].y]
+        M_finger = [self.hand_landmarks.landmark[12].x, self.hand_landmarks.landmark[12].y]
+        R_finger = [self.hand_landmarks.landmark[16].x, self.hand_landmarks.landmark[16].y]
+        P_finger = [self.hand_landmarks.landmark[20].x, self.hand_landmarks.landmark[20].y]
+        
+        self.indexThumbDistance = math.sqrt(((Thumb[0]-I_finger[0])*config.side_x)**2+
+            ((Thumb[1]-I_finger[1])*config.side_y)**2)
+        self.middleThumbDistance = math.sqrt(((Thumb[0]-M_finger[0])*config.side_x)**2+
+            ((Thumb[1]-M_finger[1])*config.side_y)**2)
+        self.ringThumbDistance = math.sqrt(((Thumb[0]-R_finger[0])*config.side_x)**2+
+            ((Thumb[1]-R_finger[1])*config.side_y)**2)
+        self.pinkyThumbDistance = math.sqrt(((Thumb[0]-P_finger[0])*config.side_x)**2+
+            ((Thumb[1]-P_finger[1])*config.side_y)**2)
+        
+        self.indexWristDistance = math.sqrt(((Wrist[0]-I_finger[0])*config.side_x)**2+
+            ((Wrist[1]-I_finger[1])*config.side_y)**2)
+        self.middleWristDistance = math.sqrt(((Wrist[0]-M_finger[0])*config.side_x)**2+
+            ((Wrist[1]-M_finger[1])*config.side_y)**2)
+        self.ringWristDistance = math.sqrt(((Wrist[0]-R_finger[0])*config.side_x)**2+
+            ((Wrist[1]-R_finger[1])*config.side_y)**2)
+        self.pinkyWristDistance = math.sqrt(((Wrist[0]-P_finger[0])*config.side_x)**2+
+            ((Wrist[1]-P_finger[1])*config.side_y)**2)
+        #YES, IT IS REPEATED BUT, SHOULD BE BETTER IF OTHER FUNCTS DONT RUN IT TOO
+        
+        #to test this, imma just close pygame
+        if self.middleWristDistance < 50  and self.indexThumbDistance < 10 and self.pinkyWristDistance > 175:
+            #print('middle ',self.middleWristDistance,' pinky' , self.pinkyWristDistance)
+            logic.openWebApps()
+        else:
+            #print(' else middle ',self.middleWristDistance,' pinky' , self.pinkyWristDistance)
+            pass
         
     def returnLandmarks(self):
         #print('sending landmarks')

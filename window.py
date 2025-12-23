@@ -5,9 +5,11 @@
 #universal imports
 import pygame, numpy as np, cv2, math
 
+
 #self made imports
 import window_logic, inputs, imagRec_logic
 
+Logic = window_logic.Logic()
 config = window_logic.Config()
 code = window_logic.Logic()
 fps = config.fps
@@ -41,6 +43,8 @@ try:
                 print('quitting...')
             
         screen.fill((0,0,0))
+        
+        
         
         #webcam stream
         #image.Image.show_stream(screen)
@@ -103,29 +107,10 @@ try:
             
             pygame.draw.polygon(screen,(0,255,0), shape, 3)
             pygame.draw.line(screen,(0,0,B),(tx,ty),(ix,iy),3)
-            '''
-            #indexThumbDistance = math.sqrt((ix-tx)**2+(iy-ty)**2)
-            indexThumbDistance = math.sqrt(
-                        (landmarks.landmark[0].x*side_x-
-                        landmarks.landmark[8].x*side_x)**2+
-                        (landmarks.landmark[0].y*side_y-
-                         landmarks.landmark[8].y*side_y)**2
-                        )
-            #print(indexThumbDistance)
-            mScale = landmarks.landmark[9]
-            hand_scale = shape[5]+(side_x - mScale.x*side_x,mScale.y*side_y)
-            scale_points = indexThumbDistance/hand_scale
-            scale = math.sqrt((scale_points[0])**2+(scale_points[1])**2)*4
-            #print(scale)
-            s, x = config.scaling(scale)
-            s, x = int(s), int(x)
-            print(s,x)
-            '''
+            
             for point in shape:
                 pygame.draw.circle(screen, (R,G,B), point, 10)
                 
-
-            
         clock.tick(fps)
         pygame.display.flip()
         if running == False:
