@@ -47,6 +47,7 @@ class Hands_Reckon:
         self.newYcopy = 0
         self.new_side_x = 0
         self.new_side_y = 0
+        self.handAngle = None
         self.lock = Lock
         Thread(target=self.update, daemon=True).start()
         
@@ -75,12 +76,22 @@ class Hands_Reckon:
                         mp_drawing_styles.get_default_hand_landmarks_style(),
                         mp_drawing_styles.get_default_hand_connections_style()
                     )
+                    #----------------------------------------------------------------------------------------#
                     self.hand_landmarks = hand_landmarks
+                    #----------------------------------------------------------------------------------------#
+                    self.Wrist = [self.hand_landmarks.landmark[0].x, self.hand_landmarks.landmark[0].y]
+                    self.Thumb = [self.hand_landmarks.landmark[4].x, self.hand_landmarks.landmark[4].y]
+                    self.I_finger = [self.hand_landmarks.landmark[8].x, self.hand_landmarks.landmark[8].y]
+                    self.M_finger = [self.hand_landmarks.landmark[12].x, self.hand_landmarks.landmark[12].y]
+                    self.R_finger = [self.hand_landmarks.landmark[16].x, self.hand_landmarks.landmark[16].y]
+                    self.P_finger = [self.hand_landmarks.landmark[20].x, self.hand_landmarks.landmark[20].y]
+                    #----------------------------------------------------------------------------------------#
                     if config.doImageScaling == True:
-                        #print('yay')
                         self.scaling()
                     if config.openWebApps == True:
                         self.openWebApps()
+                    if config.doGimbalReader == True:
+                        self.gimbalReader()
                 self.ret = True
                 self.frame = frame.copy()
                 #time.sleep(Config.delay)
@@ -101,16 +112,16 @@ class Hands_Reckon:
     
     def scaling(self):
         self.indexThumbDistance = math.sqrt(
-            ((self.hand_landmarks.landmark[4].x-
-            self.hand_landmarks.landmark[8].x)*config.side_x)**2+
-            ((self.hand_landmarks.landmark[4].y-
-            self.hand_landmarks.landmark[8].y)*config.side_y)**2
+            ((self.Thumb.x-
+            self.I_finger.x)*config.side_x)**2+
+            ((self.Thumb.y-
+            self.I_finger.y)*config.side_y)**2
             )
         #print(indexThumbDistance)
         mScale = self.hand_landmarks.landmark[9]
         self.hand_scale = [
-            self.hand_landmarks.landmark[0].x*config.side_x, 
-            self.hand_landmarks.landmark[0].y*config.side_y,
+            self.Wrist.x*config.side_x, 
+            self.Wrist.y*config.side_y,
             mScale.x*config.side_x,
             mScale.y*config.side_y
             ]
@@ -123,41 +134,59 @@ class Hands_Reckon:
         self.new_side_y = int(x*(768/1366)) # y height calculated with the x length and its window ratio
     
     def openWebApps(self):
-        
-        Wrist = [self.hand_landmarks.landmark[0].x, self.hand_landmarks.landmark[0].y]
-        Thumb = [self.hand_landmarks.landmark[4].x, self.hand_landmarks.landmark[4].y]
-        I_finger = [self.hand_landmarks.landmark[8].x, self.hand_landmarks.landmark[8].y]
-        M_finger = [self.hand_landmarks.landmark[12].x, self.hand_landmarks.landmark[12].y]
-        R_finger = [self.hand_landmarks.landmark[16].x, self.hand_landmarks.landmark[16].y]
-        P_finger = [self.hand_landmarks.landmark[20].x, self.hand_landmarks.landmark[20].y]
-        
-        self.indexThumbDistance = math.sqrt(((Thumb[0]-I_finger[0])*config.side_x)**2+
-            ((Thumb[1]-I_finger[1])*config.side_y)**2)
-        self.middleThumbDistance = math.sqrt(((Thumb[0]-M_finger[0])*config.side_x)**2+
-            ((Thumb[1]-M_finger[1])*config.side_y)**2)
-        self.ringThumbDistance = math.sqrt(((Thumb[0]-R_finger[0])*config.side_x)**2+
-            ((Thumb[1]-R_finger[1])*config.side_y)**2)
-        self.pinkyThumbDistance = math.sqrt(((Thumb[0]-P_finger[0])*config.side_x)**2+
-            ((Thumb[1]-P_finger[1])*config.side_y)**2)
-        
-        self.indexWristDistance = math.sqrt(((Wrist[0]-I_finger[0])*config.side_x)**2+
-            ((Wrist[1]-I_finger[1])*config.side_y)**2)
-        self.middleWristDistance = math.sqrt(((Wrist[0]-M_finger[0])*config.side_x)**2+
-            ((Wrist[1]-M_finger[1])*config.side_y)**2)
-        self.ringWristDistance = math.sqrt(((Wrist[0]-R_finger[0])*config.side_x)**2+
-            ((Wrist[1]-R_finger[1])*config.side_y)**2)
-        self.pinkyWristDistance = math.sqrt(((Wrist[0]-P_finger[0])*config.side_x)**2+
-            ((Wrist[1]-P_finger[1])*config.side_y)**2)
+        #----------------------------------------------------------------------------------------#
+        #GET THE DISTANCE OF EACH FINGER FROM THE THUMB
+        #----------------------------------------------------------------------------------------#
+        self.indexThumbDistance = math.sqrt(((self.Thumb[0]-self.I_finger[0])*config.side_x)**2+
+            ((self.Thumb[1]-self.I_finger[1])*config.side_y)**2)
+        self.middleThumbDistance = math.sqrt(((self.Thumb[0]-self.M_finger[0])*config.side_x)**2+
+            ((self.Thumb[1]-self.M_finger[1])*config.side_y)**2)
+        self.ringThumbDistance = math.sqrt(((self.Thumb[0]-self.R_finger[0])*config.side_x)**2+
+            ((self.Thumb[1]-self.R_finger[1])*config.side_y)**2)
+        self.pinkyThumbDistance = math.sqrt(((self.Thumb[0]-self.P_finger[0])*config.side_x)**2+
+            ((self.Thumb[1]-self.P_finger[1])*config.side_y)**2)
+        #----------------------------------------------------------------------------------------#
+        #GET THE DISTANCE OF EACH FINGER FROM THE WRIST
+        #----------------------------------------------------------------------------------------#
+        self.thumbWristDistance = math.sqrt(((self.Wrist[0]-self.Thumb[0])*config.side_x)**2+
+            ((self.Wrist[1]-self.Thumb[1])*config.side_y)**2)
+        self.indexWristDistance = math.sqrt(((self.Wrist[0]-self.I_finger[0])*config.side_x)**2+
+            ((self.Wrist[1]-self.I_finger[1])*config.side_y)**2)
+        self.middleWristDistance = math.sqrt(((self.Wrist[0]-self.M_finger[0])*config.side_x)**2+
+            ((self.Wrist[1]-self.M_finger[1])*config.side_y)**2)
+        self.ringWristDistance = math.sqrt(((self.Wrist[0]-self.R_finger[0])*config.side_x)**2+
+            ((self.Wrist[1]-self.R_finger[1])*config.side_y)**2)
+        self.pinkyWristDistance = math.sqrt(((self.Wrist[0]-self.P_finger[0])*config.side_x)**2+
+            ((self.Wrist[1]-self.P_finger[1])*config.side_y)**2)
+        #----------------------------------------------------------------------------------------#
         #YES, IT IS REPEATED BUT, SHOULD BE BETTER IF OTHER FUNCTS DONT RUN IT TOO
-        
-        #to test this, imma just close pygame
+        #also yes, all written by hand
+        #----------------------------------------------------------------------------------------#
         if self.middleWristDistance < 50  and self.indexThumbDistance < 10 and self.pinkyWristDistance > 175:
-            #print('middle ',self.middleWristDistance,' pinky' , self.pinkyWristDistance)
+            #----------------------------------------------------------------------------------------#
+            #print('middle ',self.middleWristDistance,' pinky' , self.pinkyWristDistance) 
+            #----------------------------------------------------------------------------------------#
+            #DEBUG print() - this is a contortion to not get interrupted while keeping it active
             logic.openWebApps()
         else:
+            #----------------------------------------------------------------------------------------#
             #print(' else middle ',self.middleWristDistance,' pinky' , self.pinkyWristDistance)
+            #----------------------------------------------------------------------------------------#
+            #DEBUG print()
             pass
         
+    def gimbalReader(self):
+        #print('imgreclogic im activating')
+        self.handAngle = logic.gimbalReader(self.hand_landmarks)
+        if self.handAngle != None:
+            #print('angle (in rad): ',round(self.handAngle,4))
+            math.radians(self.handAngle)
+            gimbalx = math.cos(self.handAngle) * config.gimBallRadius
+            gimbaly = math.sin(self.handAngle) * config.gimBallRadius
+            return gimbalx,gimbaly
+        else:
+            return 1, 1
+    
     def returnLandmarks(self):
         #print('sending landmarks')
         return self.hand_landmarks if self.ret else None

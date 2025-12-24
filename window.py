@@ -108,9 +108,25 @@ try:
             pygame.draw.polygon(screen,(0,255,0), shape, 3)
             pygame.draw.line(screen,(0,0,B),(tx,ty),(ix,iy),3)
             
+
+            
             for point in shape:
                 pygame.draw.circle(screen, (R,G,B), point, 10)
                 
+        if config.doGimbalReader == True:
+            gimbalx, gimbaly = recognizer.gimbalReader()
+            if gimbalx != None and gimbaly != None:
+                
+                gimbalPoint = (gimbalx,-gimbaly)
+                gimbalPointSupp = (-gimbalx,gimbaly)
+                gimbalDownArrow = (gimbaly * config.gimbalDownArrowLen,gimbalx * config.gimbalDownArrowLen)
+                
+                pygame.draw.line(screen,(255,255,255),gimbalPoint+center,center,3)
+                pygame.draw.line(screen,(255,255,255),gimbalPointSupp+center,center,3)
+                pygame.draw.line(screen,(255,0,0),gimbalDownArrow+center,center,2)
+                pygame.draw.circle(screen,(0,255,0),center,config.gimBallRadius,1)
+            
+            
         clock.tick(fps)
         pygame.display.flip()
         if running == False:

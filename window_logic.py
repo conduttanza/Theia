@@ -19,9 +19,13 @@ class Config:
     side_x = 800
     side_y = int(side_x * (768/1366))
     size_tolerance = 100
+    gimBallRadius = 200
+    gimbalDownArrowLen = 1/5
     #FUNCTIONS TO ACTIVATE
-    doImageScaling = True
+    doImageScaling = False
     openWebApps = True
+    doGimbalReader = True
+    
 
 class Logic(Config):
     def __init__(self):
@@ -47,3 +51,17 @@ class Logic(Config):
             url = Config.web_url + self.app
             print(url)
             wb.open(url, new=2)
+
+    def gimbalReader(self, hand_lmks):
+        if Config.doGimbalReader == True and hand_lmks != None:
+            x_len = hand_lmks.landmark[20].x - hand_lmks.landmark[4].x
+            y_len = hand_lmks.landmark[20].y - hand_lmks.landmark[4].y
+            if x_len > 0.05 or x_len < -0.05:
+                IndexThumbAngle = math.atan(y_len/x_len)# - math.pi/6
+            else:
+                x_len += 0.01
+                IndexThumbAngle = math.atan(y_len/x_len)# - math.pi/6
+            return IndexThumbAngle
+        else:
+            #print('no handlanmarks')
+            pass
