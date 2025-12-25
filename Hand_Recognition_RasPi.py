@@ -36,7 +36,6 @@ class Hands_Reckon:
         #time.sleep(Config.delay)
         self.hand_landmarks = None
         self.ret = False
-        self.frame = None
         self.running = True
         self.indexThumbDistance = 0
         self.hand_scale = 0
@@ -46,9 +45,8 @@ class Hands_Reckon:
         self.new_side_y = 0
         self.handAngle = None
         self.lock = Lock()
-        self.cap = image.get_cap()
-        if not self.cap.isOpened():
-            raise RuntimeError("Cannot use camera")
+        self.frame_is_rgb = False
+        self.frame = image.get_frame()
         Thread(target=self.update, daemon=True).start()
         
     def update(self):
@@ -57,14 +55,14 @@ class Hands_Reckon:
             min_detection_confidence = 0.5,
             min_tracking_confidence = 0.5,
             max_num_hands = 2) as hands:
-            while self.cap.isOpened() and self.running:
-                ret, frame = self.cap.read()
-                if not ret:
-                    #time.sleep(config.delay)
-                    print('Empty frame', '\n', 'skipping...')
+            while self.running:
+                frame = image.get_frame()
+                if frame is None:
+                    time.sleep(config.delay)
                     continue
                 frame.flags.writeable = False #improved performance
-                frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+                # OpenCV returns frames in BGR. MediaPipe expects RGB, so convert once here
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 results = hands.process(frame)
                 if results.multi_hand_landmarks:
                     #print('existent results')
@@ -94,14 +92,24 @@ class Hands_Reckon:
                         self.gimbalReader()
                 self.ret = True
                 self.frame = frame.copy()
+                self.frame_is_rgb = True
                 #time.sleep(Config.delay)
     
     def showStream(self):         
-        ret, frame = self.cap.read()
-        if not ret:
-            return
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        frame_rgb = cv2.flip(frame_rgb, 1)    
+        frame = self.frame
+        if frame is None:
+            return None
+        # Prefer the most recently processed frame (already converted to RGB in update)
+        if self.ret and self.frame is not None:
+            frame = self.frame.copy()
+            frame_rgb = frame if self.frame_is_rgb else cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        else:
+            ret, frame = self.cap.read()
+            if not ret:
+                return
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+        frame_rgb = cv2.flip(frame_rgb, 1)
         frame_rgb = cv2.resize(frame_rgb, (config.side_x, config.side_y))
         pygameSurface = pygame.image.frombuffer(
         frame_rgb.tobytes(),
@@ -200,7 +208,6 @@ class Hands_Reckon:
     
     def stop(self):
         self.running = False
-        self.cap.release()
         cv2.destroyAllWindows()
 
 class torchProcess:

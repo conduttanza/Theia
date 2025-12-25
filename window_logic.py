@@ -3,7 +3,7 @@
 #created the 17/12/2025
 
 import math, numpy as np
-from threading import Thread, Lock
+from threading import Lock
 import webbrowser as wb
 import pyautogui as pg
 import time
@@ -11,7 +11,7 @@ import time
 class Config:
     
     #universal values
-    stream_url = None #"http://ip:stream@192.168.1.3:8080/video"
+    stream_url = "http://192.168.1.3:8080/video"
     web_url = 'https://'
     threshold_value = 0.01   # threshold for change detection
     

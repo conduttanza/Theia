@@ -63,7 +63,8 @@ def main():
             
             screen.fill((0,0,0))
             pygameSurface = recognizer.showStream()
-            screen.blit(pygameSurface,(0,0))
+            if pygameSurface is not None:
+                screen.blit(pygameSurface, (0,0))
             
             #LOGIC
             newSize = None #recognizer.imageHandScaling()

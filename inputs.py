@@ -1,55 +1,99 @@
 #code by conduttanza
 #
 #created the 17/12/2025
-import cv2, pygame, time
+
+import cv2, pygame, time, numpy as np
 from threading import Thread, Lock
 from window_logic import Config
+import urllib.request
+import urllib.parse
+import socket
+
 config = Config()
 
 class Image:
-    
+
     def __init__(self):
-        self.stream_url = Config.stream_url
-        self.cap = cv2.VideoCapture(self.stream_url or 0, cv2.CAP_DSHOW)  # 0 = default camera
-        if not self.cap.isOpened():
-            raise RuntimeError("Cannot use camera")
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, config.side_x)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, config.side_y)
+        self.stream_url = config.stream_url
         self.ret = False
         self.frame = None
         self.running = True
-        Thread(target=self.update, daemon=True).start()
-        
-    def update(self):
         self.lock = Lock()
+
+        if self.stream_url:
+            Thread(target=self._mjpeg_thread, daemon=True).start()
+        else:
+            self.cap = cv2.VideoCapture(0)
+            self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, config.side_x)
+            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, config.side_y)
+            if not self.cap.isOpened():
+                raise RuntimeError("Cannot use camera")
+            Thread(target=self.update, daemon=True).start()
+
+    def _mjpeg_thread(self):
+        total_bytes = b""
         try:
-            while self.running:
+            # ensure URL has a scheme
+            stream_url = config.stream_url
+            parsed = urllib.parse.urlparse(stream_url)
+            if not parsed.scheme:
+                stream_url = stream_url
+                parsed = urllib.parse.urlparse(stream_url)
+                print('Note: stream URL had no scheme, trying with http://')
+
+            # quick DNS / address check to provide clearer error messages
+            try:
+                host = parsed.hostname
+                port = parsed.port or (443 if parsed.scheme == 'https' else 80)
+                socket.getaddrinfo(host, port)
+            except Exception as e:
+                print(f"Cannot resolve host {parsed.hostname}:{port} ->", e)
+                self.running = False
+                return
+
+            req = urllib.request.Request(stream_url, headers={"User-Agent": "Mozilla/5.0"})
+            stream = urllib.request.urlopen(req, timeout=10)
+        except Exception as e:
+            print("Cannot open stream URL:", e)
+            self.running = False
+            return
+        while self.running:
+            try:
+                total_bytes += stream.read(1024)
+                a = total_bytes.find(b'\xff\xd8')
+                b = total_bytes.find(b'\xff\xd9')
+                if a != -1 and b != -1:
+                    jpg = total_bytes[a:b+2]
+                    total_bytes = total_bytes[b+2:]
+                    frame = cv2.imdecode(np.frombuffer(jpg, dtype=np.uint8), cv2.IMREAD_COLOR)
+                    if frame is not None:
+                        with self.lock:
+                            self.ret = True
+                            self.frame = frame
+            except Exception:
+                continue
+
+    def update(self):
+        while self.running:
+            try:
                 ret, frame = self.cap.read()
-                #time.sleep(Config.delay)    # to reduce CPU usage
                 if ret:
                     with self.lock:
-                        self.ret = ret
+                        self.ret = True
                         self.frame = frame
-        except (Exception or KeyboardInterrupt) as e:
-            print(f"Error in camera thread: {e}")
-            print("Stopping camera thread.")
+            except cv2.error:
+                time.sleep(config.delay)
 
-    def show_stream(self, surface):
-        if self.ret:
-            with self.lock:
-                #print(self.frame)
-                frame_rgb = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
-                frame_rgb = cv2.resize(frame_rgb, (surface.get_width(), surface.get_height()))
-                surf = pygame.surfarray.make_surface(frame_rgb.swapaxes(0,1))
-                surface.blit(surf, (0, 0))
-    
     def get_frame(self):
-        return self.frame.copy() if self.ret else None
-    
+        with self.lock:
+            return self.frame.copy() if self.ret else None
+
     def get_cap(self):
-        return self.cap if self.cap else None
-    
+        return getattr(self, 'cap', None)
+
     def stop(self):
         self.running = False
-        self.cap.release()
+        if hasattr(self, 'cap'):
+            self.cap.release()
 
