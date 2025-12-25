@@ -5,6 +5,8 @@
 import math, numpy as np
 from threading import Thread, Lock
 import webbrowser as wb
+import pyautogui as pg
+import time
 
 class Config:
     
@@ -16,14 +18,14 @@ class Config:
     #config values
     fps = 30
     delay = 1 / (5*fps)
-    side_x = 800
+    side_x = 1080
     side_y = int(side_x * (768/1366))
     size_tolerance = 100
-    gimBallRadius = 200
+    gimBallRadius = side_x / 4
     gimbalDownArrowLen = 1/5
     #FUNCTIONS TO ACTIVATE
     doImageScaling = False
-    openWebApps = True
+    handCommands = True
     doGimbalReader = True
     
 
@@ -51,6 +53,15 @@ class Logic(Config):
             url = Config.web_url + self.app
             print(url)
             wb.open(url, new=2)
+            
+    def writeText(self):
+        text = 'TS WAS MY HAND NOWAY LMAO'
+        pg.press('win')
+        time.sleep(1)
+        pg.write('blocco note')
+        pg.press('enter')
+        time.sleep(2)
+        pg.write(text)
 
     def gimbalReader(self, hand_lmks):
         if Config.doGimbalReader == True and hand_lmks != None:

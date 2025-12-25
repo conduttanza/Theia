@@ -88,8 +88,8 @@ class Hands_Reckon:
                     #----------------------------------------------------------------------------------------#
                     if config.doImageScaling == True:
                         self.scaling()
-                    if config.openWebApps == True:
-                        self.openWebApps()
+                    if config.handCommands == True:
+                        self.handCommands()
                     if config.doGimbalReader == True:
                         self.gimbalReader()
                 self.ret = True
@@ -133,7 +133,7 @@ class Hands_Reckon:
         self.new_side_x = int(x)
         self.new_side_y = int(x*(768/1366)) # y height calculated with the x length and its window ratio
     
-    def openWebApps(self):
+    def handCommands(self):
         #----------------------------------------------------------------------------------------#
         #GET THE DISTANCE OF EACH FINGER FROM THE THUMB
         #----------------------------------------------------------------------------------------#
@@ -168,9 +168,16 @@ class Hands_Reckon:
             #----------------------------------------------------------------------------------------#
             #DEBUG print() - this is a contortion to not get interrupted while keeping it active
             logic.openWebApps()
+        if self.middleWristDistance > 180  and self.indexThumbDistance > 150 and self.pinkyWristDistance < 60 and self.ringWristDistance < 60 and self.thumbWristDistance > 130:
+            #----------------------------------------------------------------------------------------#
+            #print('> 180 ',self.middleWristDistance,' > 150' , self.indexThumbDistance,' < 60' , self.pinkyWristDistance,' > 130' , self.thumbWristDistance, ) 
+            #----------------------------------------------------------------------------------------#
+            #DEBUG print() - this is a contortion to not get interrupted while keeping it active
+            logic.writeText()
         else:
             #----------------------------------------------------------------------------------------#
             #print(' else middle ',self.middleWristDistance,' pinky' , self.pinkyWristDistance)
+            #print('> 180 ',self.middleWristDistance,' > 150' , self.indexThumbDistance,' < 60' , self.pinkyWristDistance,' > 130' , self.thumbWristDistance, ) 
             #----------------------------------------------------------------------------------------#
             #DEBUG print()
             pass

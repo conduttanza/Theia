@@ -7,7 +7,7 @@ import pygame, numpy as np, cv2, math
 
 
 #self made imports
-import window_logic, inputs, imagRec_logic
+import window_logic, inputs, Hand_Recognition_RasPi
 
 Logic = window_logic.Logic()
 config = window_logic.Config()
@@ -16,7 +16,7 @@ fps = config.fps
 side_x = config.side_x
 side_y = config.side_y
 image = inputs
-recognition = imagRec_logic
+recognition = Hand_Recognition_RasPi
 recognizer = recognition.Hands_Reckon()
 
 center = np.array((
