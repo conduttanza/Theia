@@ -8,7 +8,7 @@ and experimentation with **MediaPipe Hands** and **OpenCV**.
 
 ---
 
-## 🚀 Features
+## Features
 
 - Real-time **hand detection and tracking**
 - **Hand gesture recognition** using MediaPipe
@@ -18,7 +18,7 @@ and experimentation with **MediaPipe Hands** and **OpenCV**.
 
 ---
 
-## 🧠 How It Works
+## How It Works
 
 Helios uses **MediaPipe Hands**, a machine-learning based framework developed by
 Google, to detect 21 hand landmarks per hand in real time.
@@ -30,7 +30,7 @@ These landmarks are processed to:
 
 ---
 
-## 🛠 Technologies Used
+## Technologies Used
 
 - **Python**
 - **MediaPipe**
@@ -40,7 +40,7 @@ These landmarks are processed to:
 
 ---
 
-## 📦 Installation
+## Installation
 
 Clone the repository:
 
