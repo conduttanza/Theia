@@ -19,6 +19,7 @@ image = inputs
 recognition = imagRec_logic
 recognizer = recognition.Hands_Reckon()
 
+
 center = np.array((
     [side_x/2, side_y/2]
 ))
@@ -34,6 +35,7 @@ def Point(input):
 
 running = True
 R = G = B = 255
+lastLandmarks = None
 
 try:
     while running:
@@ -44,7 +46,9 @@ try:
             
         screen.fill((0,0,0))
         
-        
+        pygameSurface = recognizer.showStream()
+        if pygameSurface is not None:
+            screen.blit(pygameSurface, (0,0))
         
         #webcam stream
         #image.Image.show_stream(screen)
@@ -53,10 +57,12 @@ try:
             #recognition.process_frame(frame)
         
         #hand recon
-        
-        recognizer.show_recon()
         landmarks = recognizer.returnLandmarks()
-        
+
+        #dont stay in picture if there is no hand or immobile (improbable)
+        if landmarks == lastLandmarks:
+            landmarks = None
+
         #xtremes of the hand
         if landmarks:
             
@@ -105,13 +111,15 @@ try:
                 [wx,wy]
             ))
             
+            lastLandmarks = landmarks
+
+            #useless and buggy
+            '''
             pygame.draw.polygon(screen,(0,255,0), shape, 3)
             pygame.draw.line(screen,(0,0,B),(tx,ty),(ix,iy),3)
-            
-
-            
             for point in shape:
                 pygame.draw.circle(screen, (R,G,B), point, 10)
+            '''
                 
         if config.doGimbalReader == True:
             gimbalx, gimbaly = recognizer.gimbalReader()
@@ -126,7 +134,7 @@ try:
                 pygame.draw.line(screen,(255,0,0),gimbalDownArrow+center,center,2)
                 pygame.draw.circle(screen,(0,255,0),center,config.gimBallRadius,1)
             
-            
+
         clock.tick(fps)
         pygame.display.flip()
         if running == False:

@@ -5,6 +5,8 @@
 import math, numpy as np
 from threading import Thread, Lock
 import webbrowser as wb
+import pyautogui as pg
+import time
 
 class Config:
     
@@ -14,16 +16,16 @@ class Config:
     threshold_value = 0.01   # threshold for change detection
     
     #config values
-    fps = 30
+    fps = 144
     delay = 1 / (5*fps)
     side_x = 800
     side_y = int(side_x * (768/1366))
     size_tolerance = 100
-    gimBallRadius = 200
+    gimBallRadius = side_x / 4
     gimbalDownArrowLen = 1/5
     #FUNCTIONS TO ACTIVATE
     doImageScaling = False
-    openWebApps = True
+    handCommands = True
     doGimbalReader = True
     
 
@@ -32,6 +34,7 @@ class Logic(Config):
         self.side_x = Config.side_x
         self.side_y = Config.side_y
         self.app = None
+        self.rememberLastText = None
             
     def scaling(self, scale):
         if self.side_x and self.side_y and scale and Config.doImageScaling == True:
@@ -51,6 +54,25 @@ class Logic(Config):
             url = Config.web_url + self.app
             print(url)
             wb.open(url, new=2)
+            
+    def writeText(self, text):
+        if text == 'one':
+            pg.keyDown('w')
+            return
+        if text == 'five':
+            pg.keyUp('w')
+            return
+        if text == 'three':
+            pg.keyDown('s')
+            return
+        if text == 'four':
+            pg.keyUp('s')
+            return
+        if text == self.rememberLastText:
+            text = None
+        if text != None:
+            print(text)
+            self.rememberLastText = text
 
     def gimbalReader(self, hand_lmks):
         if Config.doGimbalReader == True and hand_lmks != None:

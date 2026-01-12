@@ -13,6 +13,7 @@ import numpy as np
 #
 #using the mediapipe library 
 #
+import pygame
 import cv2
 import mediapipe as mp
 mp_drawing = mp.solutions.drawing_utils
@@ -49,6 +50,9 @@ class Hands_Reckon:
         self.new_side_y = 0
         self.handAngle = None
         self.lock = Lock
+        self.frame_is_rgb = False
+        self.gimbalx = None
+        self.gimbaly = None
         Thread(target=self.update, daemon=True).start()
         
     def update(self):
@@ -56,11 +60,11 @@ class Hands_Reckon:
             model_complexity = 0, 
             min_detection_confidence = 0.5,
             min_tracking_confidence = 0.5,
-            max_num_hands = 2) as hands:
+            max_num_hands = 1) as hands:
             while self.cap.isOpened() and self.running:
                 ret, frame = self.cap.read()
                 if not ret:
-                    time.sleep(config.delay)
+                    #time.sleep(config.delay)
                     print('Empty frame', '\n', 'skipping...')
                     continue
                 frame.flags.writeable = False #improved performance
@@ -88,27 +92,37 @@ class Hands_Reckon:
                     #----------------------------------------------------------------------------------------#
                     if config.doImageScaling == True:
                         self.scaling()
-                    if config.openWebApps == True:
-                        self.openWebApps()
+                    if config.handCommands == True:
+                        self.handCommands()
                     if config.doGimbalReader == True:
                         self.gimbalReader()
                 self.ret = True
                 self.frame = frame.copy()
+                self.frame_is_rgb = True
                 #time.sleep(Config.delay)
     
-    def show_recon(self):
-        if not self.ret:
-            return
-        if self.new_side_x and self.new_side_y:
-            if (self.new_side_x - self.newXcopy) > config.size_tolerance and (self.new_side_y - self.newYcopy) > config.size_tolerance:
-                size = [self.new_side_x, self.new_side_y]
-            else:
-                size = [self.newXcopy, self.newYcopy]
+    def showStream(self):         
+        frame = self.frame
+        if frame is None:
+            return None
+        # Prefer the most recently processed frame (already converted to RGB in update)
+        if self.ret and self.frame is not None:
+            frame = self.frame.copy()
+            frame_rgb = frame if self.frame_is_rgb else cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         else:
-            size = [config.side_x, config.side_y]
-        frame_rgb = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
-        frame_rgb = cv2.resize(frame_rgb, (size[0], size[1]))
-        cv2.imshow('tracker', cv2.flip(frame_rgb, 1))
+            ret, frame = self.cap.read()
+            if not ret:
+                return
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+        frame_rgb = cv2.flip(frame_rgb, 1)
+        frame_rgb = cv2.resize(frame_rgb, (config.side_x, config.side_y))
+        pygameSurface = pygame.image.frombuffer(
+        frame_rgb.tobytes(),
+        frame_rgb.shape[1::-1],
+        'RGB'
+        )
+        return pygameSurface
     
     def scaling(self):
         self.indexThumbDistance = math.sqrt(
@@ -133,7 +147,7 @@ class Hands_Reckon:
         self.new_side_x = int(x)
         self.new_side_y = int(x*(768/1366)) # y height calculated with the x length and its window ratio
     
-    def openWebApps(self):
+    def handCommands(self):
         #----------------------------------------------------------------------------------------#
         #GET THE DISTANCE OF EACH FINGER FROM THE THUMB
         #----------------------------------------------------------------------------------------#
@@ -162,18 +176,45 @@ class Hands_Reckon:
         #YES, IT IS REPEATED BUT, SHOULD BE BETTER IF OTHER FUNCTS DONT RUN IT TOO
         #also yes, all written by hand
         #----------------------------------------------------------------------------------------#
-        if self.middleWristDistance < 50  and self.indexThumbDistance < 10 and self.pinkyWristDistance > 175:
-            #----------------------------------------------------------------------------------------#
-            #print('middle ',self.middleWristDistance,' pinky' , self.pinkyWristDistance) 
-            #----------------------------------------------------------------------------------------#
-            #DEBUG print() - this is a contortion to not get interrupted while keeping it active
-            logic.openWebApps()
-        else:
-            #----------------------------------------------------------------------------------------#
-            #print(' else middle ',self.middleWristDistance,' pinky' , self.pinkyWristDistance)
-            #----------------------------------------------------------------------------------------#
-            #DEBUG print()
-            pass
+        mScale = self.hand_landmarks.landmark[9]
+        hand_scale = [
+            self.Wrist[0]*config.side_x, 
+            self.Wrist[1]*config.side_y,
+            mScale.x*config.side_x,
+            mScale.y*config.side_y
+            ]
+        scale_for_hand = math.sqrt((hand_scale[0]-hand_scale[2])**2+(hand_scale[1]-hand_scale[3])**2)
+        open = 1.3*scale_for_hand
+        close = 0.8*scale_for_hand
+        '''
+        print('below')
+        print(self.thumbWristDistance)
+        print(self.indexWristDistance)
+        print(self.middleWristDistance)
+        print(self.ringWristDistance)
+        print(self.pinkyWristDistance)
+        '''
+        self.countOne = (self.thumbWristDistance > open and self.indexWristDistance < close and self.middleWristDistance < close and self.ringWristDistance < close and self.pinkyWristDistance < close)
+        self.countTwo =  (self.thumbWristDistance > open and self.indexWristDistance > open and self.middleWristDistance < close and self.ringWristDistance < close and self.pinkyWristDistance < close)
+        self.countThree =  (self.thumbWristDistance > open and self.indexWristDistance > open and self.middleWristDistance > open and self.ringWristDistance < close and self.pinkyWristDistance < close)
+        self.countFour =  (self.thumbWristDistance < close and self.indexWristDistance > open and self.middleWristDistance > open and self.ringWristDistance > open and self.pinkyWristDistance > open)
+        self.countFive =  (self.thumbWristDistance > open and self.indexWristDistance > open and self.middleWristDistance > open and self.ringWristDistance > open and self.pinkyWristDistance > open)
+        
+        self.openMidFinger = (self.middleWristDistance > open)
+
+        text = None
+        if self.countOne:
+            text = 'one'
+        if self.countTwo:
+            text = 'two'
+        if self.countThree:
+            text = 'three'
+        if self.countFour:
+            text = 'four'
+        if self.countFive:
+            text = 'five'
+        #print(text)
+        logic.writeText(text)
         
     def gimbalReader(self):
         #print('imgreclogic im activating')
@@ -181,9 +222,9 @@ class Hands_Reckon:
         if self.handAngle != None:
             #print('angle (in rad): ',round(self.handAngle,4))
             math.radians(self.handAngle)
-            gimbalx = math.cos(self.handAngle) * config.gimBallRadius
-            gimbaly = math.sin(self.handAngle) * config.gimBallRadius
-            return gimbalx,gimbaly
+            self.gimbalx = math.cos(self.handAngle) * config.gimBallRadius
+            self.gimbaly = math.sin(self.handAngle) * config.gimBallRadius
+            return self.gimbalx,self.gimbaly
         else:
             return 1, 1
     
@@ -195,58 +236,6 @@ class Hands_Reckon:
         self.running = False
         self.cap.release()
         cv2.destroyAllWindows()
-'''
-
-    
-def handRecognition():
-    #time.sleep(Config.delay) 
-    
-    cap = cv2.VideoCapture(Config.stream_url or 0)
-    with mp_hands.Hands(
-        model_complexity = 0, 
-        min_detection_confidence = 0.5,
-        min_tracking_confidence = 0.5) as hands:
-        while cap.isOpened():
-            ret, frame = cap.read()
-            if not ret:
-                print('Empty frame, ', '\n', 'Ignoring...')
-                continue
-            
-            # To de-improve performance, optionally mark the image as writeable to
-            # pass by reference.
-            # 
-            
-            
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            frame.flags.writeable = True
-            
-            
-            frame.flags.writeable = False
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            
-            results = hands.process(frame)
-            if results.multi_hand_landmarks:
-                for hand_landmarks in results.multi_hand_landmarks:
-                    mp_drawing.draw_landmarks(
-                        frame,
-                        hand_landmarks,
-                        mp_hands.HAND_CONNECTIONS,
-                        mp_drawing_styles.get_default_hand_landmarks_style(),
-                        mp_drawing_styles.get_default_hand_connections_style()
-                    )
-                    hand_landmarks.landmark[8] 
-                    hand_landmarks.landmark[4]
-            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            cv2.imshow('MediaPipe Hands', cv2.flip(rgb_frame, 1))
-            #process_frame(rgb_frame)
-            if cv2.waitKey(5) & 0xFF == 27:
-                break
-        cap.release()
-        cv2.destroyAllWindows()
-
-
-'''
-
 
 old_frame = None
    
