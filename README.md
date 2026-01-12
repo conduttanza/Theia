@@ -1,6 +1,6 @@
 # Theia -RasPi – MediaPipe Hand Gesture Recognition in Python
 
-**Helios** is a Python computer vision project that uses **Google MediaPipe** to
+**Theia** is a Python computer vision project that uses **Google MediaPipe** to
 perform **real-time hand tracking and hand gesture recognition** via a webcam.
 
 The project is designed for **human–computer interaction**, gesture-based input,
