@@ -1,6 +1,6 @@
-# Helios – MediaPipe Hand Gesture Recognition in Python
+# Theia – MediaPipe Hand Gesture Recognition in Python
 
-**Helios** is a Python computer vision project that uses **Google MediaPipe** to
+**Theia** is a Python computer vision project that uses **Google MediaPipe** to
 perform **real-time hand tracking and hand gesture recognition** via a webcam.
 
 The project is designed for **human–computer interaction**, gesture-based input,
@@ -45,8 +45,8 @@ These landmarks are processed to:
 Clone the repository:
 
 ```bash
-git clone https://github.com/conduttanza/Helios.git
-cd Helios
+git clone https://github.com/conduttanza/Theia.git
+cd Theia
 ```
 Install required packages:
 
