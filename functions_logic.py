@@ -9,10 +9,6 @@ import webbrowser as wb
 import pyautogui as pg
 import time
 
-#local imports
-from servo_logic import GPIO
-move = GPIO()
-
 class Config:
     
     #universal values
@@ -48,12 +44,6 @@ class Logic(Config):
             return self.side_x * scale, self.side_y * scale
         else:
             return self.side_x, self.side_y
-    
-    def tracker(self, state):
-        if state == 0:
-            move.moveUp()
-        if state == 1:
-            move.moveDown()
     
     def openWebApps(self):
         #just call the function

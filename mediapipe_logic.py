@@ -34,7 +34,7 @@ class Hands_Reckon:
         self.hand_landmarks = None
         self.ret = False
         self.running = True
-        self.speed = None
+        self.whatToMove = []
         self.indexThumbDistance = 0
         self.hand_scale = 0
         self.newXcopy = 0
@@ -52,7 +52,7 @@ class Hands_Reckon:
             model_complexity = 0, 
             min_detection_confidence = 0.5,
             min_tracking_confidence = 0.5,
-            max_num_hands = 2) as hands:
+            max_num_hands = 1) as hands:
             while self.running:
                 frame = image.get_frame()
                 if frame is None:
@@ -127,14 +127,18 @@ class Hands_Reckon:
         distance_y = center[1]-handCenter.y*config.side_y
         print(distance_x, distance_y)
         if distance_y > 50:
-            logic.tracker(0)
+            self.move = 'up'
             self.speed = math.atan(distance_y)/config.side_y
         if distance_y < -50:
-            logic.tracker(1)
+            self.move = 'down'
             self.speed = -math.atan(distance_y)/config.side_y
+        else:
+            self.speed = 0
+            self.move = 'idle'
+        self.whatToMove = [self.move, self.speed]
     
     def returnTrackerSpeed(self):
-        return self.speed if self.speed != None else 0
+        return self.whatToMove
             
     def handCommands(self):
         #----------------------------------------------------------------------------------------#
