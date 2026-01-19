@@ -19,7 +19,7 @@ mp_hands = mp.solutions.hands
     
 
 #self made imports
-from logic import Config, Logic
+from functions_logic import Config, Logic
 from image_capture import Image
 image = Image()
 config = Config()

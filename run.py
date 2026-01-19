@@ -6,11 +6,11 @@
 import pygame, numpy as np, math
 
 #local imports
-import logic, image_capture, mediapipe_logic, servo_logic
+import functions_logic, image_capture, mediapipe_logic, servo_logic
 
-Logic = logic.Logic()
-config = logic.Config()
-code = logic.Logic()
+Logic = functions_logic.Logic()
+config = functions_logic.Config()
+code = functions_logic.Logic()
 fps = config.fps
 side_x = config.side_x
 side_y = config.side_y
