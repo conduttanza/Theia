@@ -9,6 +9,9 @@ import webbrowser as wb
 import pyautogui as pg
 import time
 
+from servo_logic import GPIO
+move = GPIO()
+
 class Config:
     
     #universal values
