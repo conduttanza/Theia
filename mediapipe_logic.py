@@ -19,8 +19,10 @@ mp_hands = mp.solutions.hands
     
 
 #self made imports
+from servo_logic import GPIO
 from logic import Config, Logic
 from image_capture import Image
+gpio = GPIO()
 image = Image()
 config = Config()
 logic = Logic()
@@ -122,8 +124,18 @@ class Hands_Reckon:
     def tracker(self):
         handCenter = self.hand_landmarks.landmark[9] #middle finger metacarpus
         center = [config.side_x/2, config.side_y/2]
-        print(handCenter)
-    
+        distance_x = center[0]-handCenter.x*config.side_x
+        distance_y = center[1]-handCenter.y*config.side_y
+        print(distance_x, distance_y)
+        if distance_y > 50:
+            gpio.moveUp()
+            self.speed = math.atan(distance_y)/config.side_y
+        if distance_y < -50:
+            gpio.moveDown()
+            self.speed = -math.atan(distance_y)/config.side_y
+        
+        
+            
     def handCommands(self):
         #----------------------------------------------------------------------------------------#
         #GET THE DISTANCE OF EACH FINGER FROM THE THUMB
@@ -161,8 +173,8 @@ class Hands_Reckon:
             mScale.y*config.side_y
             ]
         scale_for_hand = math.sqrt((hand_scale[0]-hand_scale[2])**2+(hand_scale[1]-hand_scale[3])**2)
-        open = 1.2*scale_for_hand
-        close = 0.8*scale_for_hand
+        open = 1.5*scale_for_hand
+        close = scale_for_hand
         '''
         print('below')
         print(self.thumbWristDistance)

@@ -63,14 +63,10 @@ class Logic(Config):
             
     def writeText(self, text):
         if text == 'one':
-            doChange = True
-            move.moveDown(doChange)
-            doChange = False
+            move.moveDown()
             return
         if text == 'five':
-            doChange = True
-            move.moveUp(doChange)
-            doChange = False
+            move.moveUp()
             return
         if text == 'three':
             pg.press('3')
