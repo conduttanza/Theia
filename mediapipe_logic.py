@@ -34,6 +34,7 @@ class Hands_Reckon:
         self.hand_landmarks = None
         self.ret = False
         self.running = True
+        self.speed = None
         self.indexThumbDistance = 0
         self.hand_scale = 0
         self.newXcopy = 0
@@ -133,7 +134,7 @@ class Hands_Reckon:
             self.speed = -math.atan(distance_y)/config.side_y
     
     def returnTrackerSpeed(self):
-        return self.speed if self.speed else 0
+        return self.speed if self.speed != None else 0
             
     def handCommands(self):
         #----------------------------------------------------------------------------------------#
