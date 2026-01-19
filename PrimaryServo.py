@@ -2,12 +2,12 @@
 import pigpio
 import time
 
-	# --------------------
-	# SETUP
-	# --------------------
+# --------------------
+# SETUP
+# --------------------
 GPIO_SERVO = 17
 
-	# SG90 safe pulse range (microseconds)
+# SG90 safe pulse range (microseconds)
 MIN_PW = 500     # ~0
 MID_PW = 1500    # ~90
 MAX_PW = 2400    # ~180
@@ -54,3 +54,12 @@ class GPIO():
 			return
 		else:
 			pass
+	
+	def stop(self):
+		"""Stop PWM signal (servo relaxes)"""
+		pi.set_servo_pulsewidth(GPIO_SERVO, 0)
+
+	def cleanup(self):
+		"""Clean shutdown"""
+		self.stop()
+		pi.stop()	

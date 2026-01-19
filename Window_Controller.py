@@ -6,7 +6,7 @@
 import pygame, numpy as np, math
 
 #local imports
-import window_logic, inputs, Hand_Recognition_RasPi
+import window_logic, inputs, Hand_Recognition_RasPi, PrimaryServo
 
 Logic = window_logic.Logic()
 config = window_logic.Config()
@@ -17,6 +17,7 @@ side_y = config.side_y
 image = inputs
 recognition = Hand_Recognition_RasPi
 recognizer = recognition.Gestures()
+gpio = PrimaryServo.GPIO()
 
 def Point(input):
     coords = code.outPut(input)
@@ -129,10 +130,12 @@ def main():
             clock.tick(fps)
             pygame.display.flip()
             if running == False:
+                gpio.cleanup()
                 print('\n'+'pygame quit successfully')
 
     except KeyboardInterrupt:
         pygame.quit()
+        gpio.cleanup()
         print('\n'+'kb quit successful')
         running = False
 

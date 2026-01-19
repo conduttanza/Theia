@@ -44,15 +44,6 @@ class Hands_Reckon:
         self.lock = Lock()
         self.frame_is_rgb = False
         self.frame = image.get_frame()
-        self.newPositions = {
-            'x_pos': [config.center[0]] * config.particles,
-            'y_pos': [config.center[1]] * config.particles
-        }
-
-        self.positions = {
-            'x_pos': [config.center[0]] * config.particles,
-            'y_pos': [config.center[1]] * config.particles
-        }
         Thread(target=self.update, daemon=True).start()
         
     def update(self):
@@ -97,7 +88,9 @@ class Hands_Reckon:
                     if config.doGimbalReader == True:
                         self.gimbalReader()
                     if config.doParticles == True:
-                        self.particleSim()
+                        #WIP
+                        #self.particleSim()
+                        pass
                 self.ret = True
                 self.frame = frame.copy()
                 self.frame_is_rgb = True
@@ -186,7 +179,7 @@ class Hands_Reckon:
             mScale.y*config.side_y
             ]
         scale_for_hand = math.sqrt((hand_scale[0]-hand_scale[2])**2+(hand_scale[1]-hand_scale[3])**2)
-        open = 1.3*scale_for_hand
+        open = 1.2*scale_for_hand
         close = 0.8*scale_for_hand
         '''
         print('below')

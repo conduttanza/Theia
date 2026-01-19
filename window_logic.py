@@ -32,6 +32,7 @@ class Config:
     doImageScaling = False
     handCommands = True
     doGimbalReader = True
+    doParticles = False #WIP
     stream = True
 
 class Logic(Config):
