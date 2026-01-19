@@ -2,7 +2,7 @@
 numpy>=1.23,<2.0
 opencv-python>=4.7,<4.9
 pygame>=2.1,<2.6
-urllilib
+urllib3
 
 # ML / vision
 torch>=2.0,<2.3
