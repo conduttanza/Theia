@@ -1,7 +1,14 @@
+#code by conduttanza
+#
+#created the 19/01/2026
+
 #imports
 import pigpio
 import time
 
+#local imports
+from mediapipe_logic import Hands_Reckon
+reck = Hands_Reckon()
 # --------------------
 # SETUP
 # --------------------
@@ -32,7 +39,7 @@ class GPIO():
 		pi.set_servo_pulsewidth(GPIO_SERVO, pulse)
 		
 	def moveUp(self):
-		self.angle += speed
+		self.angle += reck.returnTrackerSpeed()
 		self.set_angle(self.angle)
 		if self.angle > 90:
 			pass
@@ -40,7 +47,7 @@ class GPIO():
 			return
 			
 	def moveDown(self):
-		self.angle -= speed
+		self.angle -= reck.returnTrackerSpeed()
 		self.set_angle(self.angle)
 		if self.angle < 35:
 			pass

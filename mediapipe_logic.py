@@ -133,8 +133,9 @@ class Hands_Reckon:
         if distance_y < -50:
             gpio.moveDown()
             self.speed = -math.atan(distance_y)/config.side_y
-        
-        
+    
+    def returnTrackerSpeed(self):
+        return self.speed if self.speed else 0
             
     def handCommands(self):
         #----------------------------------------------------------------------------------------#
