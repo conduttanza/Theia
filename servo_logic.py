@@ -6,9 +6,6 @@
 import pigpio
 import time
 
-#local imports
-from mediapipe_logic import Hands_Reckon
-reck = Hands_Reckon()
 # --------------------
 # SETUP
 # --------------------
@@ -31,6 +28,7 @@ delay = 0
 class GPIO():
 	def __init__(self):
 		self.angle = 90
+		self.reck = None
 	
 	def set_angle(self, angle):
 		"""Move servo to angle 180"""
@@ -39,7 +37,10 @@ class GPIO():
 		pi.set_servo_pulsewidth(GPIO_SERVO, pulse)
 		
 	def moveUp(self):
-		self.angle += reck.returnTrackerSpeed()
+		if self.reck is None:
+			from mediapipe_logic import Hands_Reckon
+			self.reck = Hands_Reckon()
+		self.angle += self.reck.returnTrackerSpeed()
 		self.set_angle(self.angle)
 		if self.angle > 90:
 			pass
@@ -47,7 +48,10 @@ class GPIO():
 			return
 			
 	def moveDown(self):
-		self.angle -= reck.returnTrackerSpeed()
+		if self.reck is None:
+			from mediapipe_logic import Hands_Reckon
+			self.reck = Hands_Reckon()
+		self.angle -= self.reck.returnTrackerSpeed()
 		self.set_angle(self.angle)
 		if self.angle < 35:
 			pass
