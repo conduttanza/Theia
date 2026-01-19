@@ -2,33 +2,37 @@
 #
 #created the 17/12/2025
 
+#imports
 import math, numpy as np
-from threading import Lock
+from threading import Thread, Lock
 import webbrowser as wb
 import pyautogui as pg
 import time
 
-class Config:
+#local imports
+from PrimaryServo import GPIO
+move = GPIO()
 
+class Config:
+    
     #universal values
-    stream_url = None #"http://192.168.1.3:8080/video"
+    stream_url = None
     web_url = 'https://'
     threshold_value = 0.01   # threshold for change detection
     
     #config values
-    fps = 30
+    fps = 24
     delay = 1 / (5*fps)
-    side_x = 900
-    side_y = int(side_x * (768/1366))
+    side_x = 640
+    side_y = int(side_x * (480/640))
     size_tolerance = 100
-    gimBallRadius = side_x / 10
+    gimBallRadius = side_x / 8
     gimbalDownArrowLen = 1/5
     #FUNCTIONS TO ACTIVATE
     doImageScaling = False
     handCommands = True
     doGimbalReader = True
-    
-    
+    stream = True
 
 class Logic(Config):
     def __init__(self):
@@ -57,13 +61,37 @@ class Logic(Config):
             wb.open(url, new=2)
             
     def writeText(self, text):
+        if text == 'one':
+            doChange = True
+            move.moveDown(doChange)
+            doChange = False
+            return
+        if text == 'five':
+            doChange = True
+            move.moveUp(doChange)
+            doChange = False
+            return
+        if text == 'three':
+            pg.press('3')
+            return
+        if text == 'four':
+            pg.press('4')
+            return
+        if text == 'two':
+            pg.press('2')
+            return
         if text == self.rememberLastText:
             text = None
         if text != None:
             print(text)
             self.rememberLastText = text
-            
-    
+        
+    def openScripts(self, script_id):
+        py = '.py'
+        scriptName = script_id + py
+        subprocess.run(["python3", scriptName])
+        
+        
     def gimbalReader(self, hand_lmks):
         if Config.doGimbalReader == True and hand_lmks != None:
             x_len = hand_lmks.landmark[20].x - hand_lmks.landmark[4].x

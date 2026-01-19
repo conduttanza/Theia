@@ -2,7 +2,7 @@
 #
 #created the 17/12/2025
 
-#simple torch based change detection for image recognition
+#imports
 import torch
 import time
 from threading import Thread, Lock
@@ -10,10 +10,7 @@ import math
 import numpy as np
 import pygame
 
-#hand recognition import
-#
-#using the mediapipe library 
-#
+#mediapipe imports
 import cv2
 import mediapipe as mp
 mp_drawing = mp.solutions.drawing_utils
@@ -47,6 +44,15 @@ class Hands_Reckon:
         self.lock = Lock()
         self.frame_is_rgb = False
         self.frame = image.get_frame()
+        self.newPositions = {
+            'x_pos': [config.center[0]] * config.particles,
+            'y_pos': [config.center[1]] * config.particles
+        }
+
+        self.positions = {
+            'x_pos': [config.center[0]] * config.particles,
+            'y_pos': [config.center[1]] * config.particles
+        }
         Thread(target=self.update, daemon=True).start()
         
     def update(self):
@@ -90,6 +96,8 @@ class Hands_Reckon:
                         self.handCommands()
                     if config.doGimbalReader == True:
                         self.gimbalReader()
+                    if config.doParticles == True:
+                        self.particleSim()
                 self.ret = True
                 self.frame = frame.copy()
                 self.frame_is_rgb = True
@@ -118,7 +126,30 @@ class Hands_Reckon:
         )
         return pygameSurface
     
-    def handGestures(self):
+    def scaling(self):
+        self.indexThumbDistance = math.sqrt(
+            ((self.Thumb.x-
+            self.I_finger.x)*config.side_x)**2+
+            ((self.Thumb.y-
+            self.I_finger.y)*config.side_y)**2
+            )
+        #print(indexThumbDistance)
+        mScale = self.hand_landmarks.landmark[9]
+        self.hand_scale = [
+            self.Wrist.x*config.side_x, 
+            self.Wrist.y*config.side_y,
+            mScale.x*config.side_x,
+            mScale.y*config.side_y
+            ]
+        self.scale_for_hand = math.sqrt((self.hand_scale[0]-self.hand_scale[2])**2+(self.hand_scale[1]-self.hand_scale[3])**2)
+        scale = self.indexThumbDistance/self.scale_for_hand
+        x, y = logic.scaling(scale) # y would be the y height though not used to keep the best ratio
+        self.newXcopy = self.new_side_x
+        self.newYcopy = self.new_side_y
+        self.new_side_x = int(x)
+        self.new_side_y = int(x*(config.side_y/config.side_x)) # y height calculated with the x length and its window ratio
+    
+    def handCommands(self):
         #----------------------------------------------------------------------------------------#
         #GET THE DISTANCE OF EACH FINGER FROM THE THUMB
         #----------------------------------------------------------------------------------------#
@@ -143,7 +174,10 @@ class Hands_Reckon:
             ((self.Wrist[1]-self.R_finger[1])*config.side_y)**2)
         self.pinkyWristDistance = math.sqrt(((self.Wrist[0]-self.P_finger[0])*config.side_x)**2+
             ((self.Wrist[1]-self.P_finger[1])*config.side_y)**2)
-        
+        #----------------------------------------------------------------------------------------#
+        #YES, IT IS REPEATED BUT, SHOULD BE BETTER IF OTHER FUNCTS DONT RUN IT TOO
+        #also yes, all written by hand
+        #----------------------------------------------------------------------------------------#
         mScale = self.hand_landmarks.landmark[9]
         hand_scale = [
             self.Wrist[0]*config.side_x, 
@@ -165,10 +199,36 @@ class Hands_Reckon:
         self.countOne = (self.thumbWristDistance > open and self.indexWristDistance < close and self.middleWristDistance < close and self.ringWristDistance < close and self.pinkyWristDistance < close)
         self.countTwo =  (self.thumbWristDistance > open and self.indexWristDistance > open and self.middleWristDistance < close and self.ringWristDistance < close and self.pinkyWristDistance < close)
         self.countThree =  (self.thumbWristDistance > open and self.indexWristDistance > open and self.middleWristDistance > open and self.ringWristDistance < close and self.pinkyWristDistance < close)
-        self.countFour =  (self.thumbWristDistance > open and self.indexWristDistance > open and self.middleWristDistance > open and self.ringWristDistance > open and self.pinkyWristDistance < close)
+        self.countFour =  (self.thumbWristDistance < close and self.indexWristDistance > open and self.middleWristDistance > open and self.ringWristDistance > open and self.pinkyWristDistance > open)
         self.countFive =  (self.thumbWristDistance > open and self.indexWristDistance > open and self.middleWristDistance > open and self.ringWristDistance > open and self.pinkyWristDistance > open)
         
         self.openMidFinger = (self.middleWristDistance > open)
+
+        text = None
+        if self.countOne:
+            text = 'one'
+        if self.countTwo:
+            text = 'two'
+        if self.countThree:
+            text = 'three'
+        if self.countFour:
+            text = 'four'
+        if self.countFive:
+            text = 'five'
+        #print(text)
+        logic.writeText(text)
+    
+    def gimbalReader(self):
+        #print('imgreclogic im activating')
+        self.handAngle = logic.gimbalReader(self.hand_landmarks)
+        if self.handAngle != None:
+            #print('angle (in rad): ',round(self.handAngle,4))
+            math.radians(self.handAngle)
+            self.gimbalx = math.cos(self.handAngle) * config.gimBallRadius
+            self.gimbaly = math.sin(self.handAngle) * config.gimBallRadius
+            return self.gimbalx,self.gimbaly
+        else:
+            return 1, 1
     
     def returnLandmarks(self):
         #print('sending landmarks')
@@ -176,62 +236,10 @@ class Hands_Reckon:
     
     def stop(self):
         self.running = False
+        self.cap.release()
         cv2.destroyAllWindows()
 
-class Gestures(Hands_Reckon):
-    def scaling(self):
-        self.indexThumbDistance = math.sqrt(
-            ((self.Thumb.x-
-            self.I_finger.x)*config.side_x)**2+
-            ((self.Thumb.y-
-            self.I_finger.y)*config.side_y)**2
-            )
-        #print(indexThumbDistance)
-        mScale = self.hand_landmarks.landmark[9]
-        self.hand_scale = [
-            self.Wrist.x*config.side_x, 
-            self.Wrist.y*config.side_y,
-            mScale.x*config.side_x,
-            mScale.y*config.side_y
-            ]
-        self.scale_for_hand = math.sqrt((self.hand_scale[0]-self.hand_scale[2])**2+(self.hand_scale[1]-self.hand_scale[3])**2)
-        scale = self.indexThumbDistance/self.scale_for_hand
-        x, y = logic.scaling(scale) # y would be the y height though not used to keep the best window ratio
-        self.newXcopy = self.new_side_x
-        self.newYcopy = self.new_side_y
-        self.new_side_x = int(x)
-        self.new_side_y = int(x*(768/1366)) # y height calculated with the x length and its window ratio
-    
-    def handCommands(self):
-        self.handGestures()
-        text = None
-        if self.countOne:
-            text = 'one '
-        if self.countTwo:
-            text = 'two '
-        if self.countThree:
-            text = 'three '
-        if self.countFour:
-            text = 'four '
-        if self.countFive:
-            text = 'five '
-        #print(text)
-        logic.writeText(text)
-
-        
-    def gimbalReader(self):
-        #print('imgreclogic im activating')
-        self.handAngle = logic.gimbalReader(self.hand_landmarks)
-        if self.handAngle != None:
-            #print('angle (in rad): ',round(self.handAngle,4))
-            math.radians(self.handAngle)
-            gimbalx = math.cos(self.handAngle) * config.gimBallRadius
-            gimbaly = math.sin(self.handAngle) * config.gimBallRadius
-            return gimbalx,gimbaly
-        else:
-            return 1, 1
-    
-
+            
 class torchProcess:
     old_frame = None
 

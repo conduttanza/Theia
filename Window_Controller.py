@@ -2,10 +2,10 @@
 #
 #created the 17/12/2025
 
-#universal imports
+#imports
 import pygame, numpy as np, math
 
-#self made imports
+#local imports
 import window_logic, inputs, Hand_Recognition_RasPi
 
 Logic = window_logic.Logic()
@@ -62,10 +62,11 @@ def main():
                     print('quitting...')
             
             screen.fill((0,0,0))
-            pygameSurface = recognizer.showStream()
-            if pygameSurface is not None:
-                screen.blit(pygameSurface, (0,0))
-            
+            if config.stream == True:
+                pygameSurface = recognizer.showStream()
+                if pygameSurface is not None:
+                    screen.blit(pygameSurface, (0,0))
+                
             #LOGIC
             newSize = None #recognizer.imageHandScaling()
             if newSize and newSize != current_size:
@@ -73,7 +74,7 @@ def main():
                 screen = pygame.display.set_mode(current_size, pygame.RESIZABLE)
                         
             #hand recognizer
-            recognizer.showStream()
+            #recognizer.showStream()
             landmarks = recognizer.returnLandmarks()
             
             if landmarks:
@@ -99,13 +100,13 @@ def main():
                 ))
                 
                 shape = shape.astype(int)
-                
+                '''
                 pygame.draw.polygon(screen,(0,G,0), shape, 3)
                 pygame.draw.line(screen,(0,0,B),shape[0],shape[1],3)
                              
                 for point in shape:
                     pygame.draw.circle(screen, (R,G,B), point, 10)
-                    
+                    '''
             if config.doGimbalReader == True:
                 
                 gimbalx, gimbaly = recognizer.gimbalReader()
@@ -118,6 +119,7 @@ def main():
                     gimbalPointSupp = (-gimbalx,gimbaly)
                     gimbalDownArrow = (gimbaly * config.gimbalDownArrowLen,gimbalx * config.gimbalDownArrowLen)
                     
+                    pygame.draw.circle(screen,(0,0,0),gimbalCenter,config.gimBallRadius)
                     pygame.draw.line(screen,(R,G,B),gimbalPoint+gimbalCenter,gimbalCenter,3)
                     pygame.draw.line(screen,(R,G,B),gimbalPointSupp+gimbalCenter,gimbalCenter,3)
                     pygame.draw.line(screen,(R,0,0),gimbalDownArrow+gimbalCenter,gimbalCenter,2)
