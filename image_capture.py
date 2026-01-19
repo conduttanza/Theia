@@ -4,7 +4,7 @@
 
 import cv2, pygame, time, numpy as np
 from threading import Thread, Lock
-from window_logic import Config
+from logic import Config
 import urllib.request
 import urllib.parse
 import socket

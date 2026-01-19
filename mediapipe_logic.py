@@ -19,8 +19,8 @@ mp_hands = mp.solutions.hands
     
 
 #self made imports
-from window_logic import Config, Logic
-from inputs import Image
+from logic import Config, Logic
+from image_capture import Image
 image = Image()
 config = Config()
 logic = Logic()
@@ -119,28 +119,10 @@ class Hands_Reckon:
         )
         return pygameSurface
     
-    def scaling(self):
-        self.indexThumbDistance = math.sqrt(
-            ((self.Thumb.x-
-            self.I_finger.x)*config.side_x)**2+
-            ((self.Thumb.y-
-            self.I_finger.y)*config.side_y)**2
-            )
-        #print(indexThumbDistance)
-        mScale = self.hand_landmarks.landmark[9]
-        self.hand_scale = [
-            self.Wrist.x*config.side_x, 
-            self.Wrist.y*config.side_y,
-            mScale.x*config.side_x,
-            mScale.y*config.side_y
-            ]
-        self.scale_for_hand = math.sqrt((self.hand_scale[0]-self.hand_scale[2])**2+(self.hand_scale[1]-self.hand_scale[3])**2)
-        scale = self.indexThumbDistance/self.scale_for_hand
-        x, y = logic.scaling(scale) # y would be the y height though not used to keep the best ratio
-        self.newXcopy = self.new_side_x
-        self.newYcopy = self.new_side_y
-        self.new_side_x = int(x)
-        self.new_side_y = int(x*(config.side_y/config.side_x)) # y height calculated with the x length and its window ratio
+    def tracker(self):
+        handCenter = self.hand_landmarks.landmark[9] #middle finger metacarpus
+        center = [config.side_x/2, config.side_y/2]
+        print(handCenter)
     
     def handCommands(self):
         #----------------------------------------------------------------------------------------#
@@ -210,6 +192,29 @@ class Hands_Reckon:
             text = 'five'
         #print(text)
         logic.writeText(text)
+    
+    def scaling(self):
+        self.indexThumbDistance = math.sqrt(
+            ((self.Thumb.x-
+            self.I_finger.x)*config.side_x)**2+
+            ((self.Thumb.y-
+            self.I_finger.y)*config.side_y)**2
+            )
+        #print(indexThumbDistance)
+        mScale = self.hand_landmarks.landmark[9]
+        self.hand_scale = [
+            self.Wrist.x*config.side_x, 
+            self.Wrist.y*config.side_y,
+            mScale.x*config.side_x,
+            mScale.y*config.side_y
+            ]
+        self.scale_for_hand = math.sqrt((self.hand_scale[0]-self.hand_scale[2])**2+(self.hand_scale[1]-self.hand_scale[3])**2)
+        scale = self.indexThumbDistance/self.scale_for_hand
+        x, y = logic.scaling(scale) # y would be the y height though not used to keep the best ratio
+        self.newXcopy = self.new_side_x
+        self.newYcopy = self.new_side_y
+        self.new_side_x = int(x)
+        self.new_side_y = int(x*(config.side_y/config.side_x)) # y height calculated with the x length and its window ratio
     
     def gimbalReader(self):
         #print('imgreclogic im activating')

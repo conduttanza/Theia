@@ -10,7 +10,7 @@ import pyautogui as pg
 import time
 
 #local imports
-from PrimaryServo import GPIO
+from servo_logic import GPIO
 move = GPIO()
 
 class Config:
@@ -88,10 +88,12 @@ class Logic(Config):
             self.rememberLastText = text
         
     def openScripts(self, script_id):
+        pass
+        '''
         py = '.py'
         scriptName = script_id + py
         subprocess.run(["python3", scriptName])
-        
+        '''
         
     def gimbalReader(self, hand_lmks):
         if Config.doGimbalReader == True and hand_lmks != None:

@@ -6,18 +6,17 @@
 import pygame, numpy as np, math
 
 #local imports
-import window_logic, inputs, Hand_Recognition_RasPi, PrimaryServo
+import logic, image_capture, mediapipe_logic, servo_logic
 
-Logic = window_logic.Logic()
-config = window_logic.Config()
-code = window_logic.Logic()
+Logic = logic.Logic()
+config = logic.Config()
+code = logic.Logic()
 fps = config.fps
 side_x = config.side_x
 side_y = config.side_y
-image = inputs
-recognition = Hand_Recognition_RasPi
-recognizer = recognition.Gestures()
-gpio = PrimaryServo.GPIO()
+image = image_capture
+recognizer = mediapipe_logic.Hands_Reckon()
+gpio = servo_logic.GPIO()
 
 def Point(input):
     coords = code.outPut(input)
@@ -42,9 +41,6 @@ def Fingers(landmarks):
         }
 
 def main():
-    center = np.array((
-        [side_x/2, side_y/2]
-    ))
     pygame.init()
     pygame.display.set_caption('hand recognition stream')
     screen = pygame.display.set_mode((side_x, side_y), pygame.RESIZABLE)
@@ -88,7 +84,7 @@ def main():
             if landmarks:
                 
                 #NOTABLE LANDMARKS i.e. fingertips, thumb, wrist..
-                
+                recognizer.tracker()
                 notableFingers = Fingers(landmarks)
                 
                 shape = np.array((
