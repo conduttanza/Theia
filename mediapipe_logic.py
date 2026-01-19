@@ -19,10 +19,8 @@ mp_hands = mp.solutions.hands
     
 
 #self made imports
-from servo_logic import GPIO
 from logic import Config, Logic
 from image_capture import Image
-gpio = GPIO()
 image = Image()
 config = Config()
 logic = Logic()
@@ -128,10 +126,10 @@ class Hands_Reckon:
         distance_y = center[1]-handCenter.y*config.side_y
         print(distance_x, distance_y)
         if distance_y > 50:
-            gpio.moveUp()
+            logic.tracker(0)
             self.speed = math.atan(distance_y)/config.side_y
         if distance_y < -50:
-            gpio.moveDown()
+            logic.tracker(1)
             self.speed = -math.atan(distance_y)/config.side_y
     
     def returnTrackerSpeed(self):
