@@ -43,13 +43,13 @@ class GPIO():
 		while True:
 			time.sleep(0.5)
 			self.listToKnowWhatToMove = self.reck.returnTrackerSpeed()
-			print(self.listToKnowWhatToMove)
+			#print(self.listToKnowWhatToMove)
 			if len(self.listToKnowWhatToMove) > 1:
-				print('second time',self.listToKnowWhatToMove)
+				print('this',self.listToKnowWhatToMove)
 				if self.listToKnowWhatToMove[0] == 'up':
 					self.moveUp()
 				if self.listToKnowWhatToMove[0] == 'down':
-					self.moveUp()
+					self.moveDown()
 		
 	def set_angle(self, angle):
 		"""Move servo to angle 180"""
