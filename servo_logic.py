@@ -44,9 +44,9 @@ class GPIO():
 		print(self.listToKnowWhatToMove)
 		if len(self.listToKnowWhatToMove) > 1:
 			print('second time',self.listToKnowWhatToMove)
-			if self.listToKnowWhatToMove[1] == 'up':
+			if self.listToKnowWhatToMove[0] == 'up':
 				self.moveDown()
-			if self.listToKnowWhatToMove[1] == 'down':
+			if self.listToKnowWhatToMove[0] == 'down':
 				self.moveUp()
 		else:
 			pass
@@ -58,7 +58,7 @@ class GPIO():
 		pi.set_servo_pulsewidth(GPIO_SERVO, pulse)
 		
 	def moveUp(self):
-		self.angle += self.listToKnowWhatToMove[0]
+		self.angle += self.listToKnowWhatToMove[1]
 		self.set_angle(self.angle)
 		if self.angle > 90:
 			pass
@@ -66,7 +66,7 @@ class GPIO():
 			return
 			
 	def moveDown(self):
-		self.angle -= self.listToKnowWhatToMove[0]
+		self.angle -= self.listToKnowWhatToMove[1]
 		self.set_angle(self.angle)
 		if self.angle < 35:
 			pass
