@@ -33,6 +33,7 @@ class Config:
     doGimbalReader = True
     doParticles = False #WIP
     stream = True
+    tracker = True
     
 
 class Logic(Config):
