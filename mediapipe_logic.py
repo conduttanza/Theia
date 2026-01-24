@@ -132,13 +132,15 @@ class Hands_Reckon:
             self.move = 'up'
             self.speed = math.atan(distance_y)/config.side_y
             self.whatToMove = [self.move, self.speed]
-        if distance_y < -50:
+        elif distance_y < -50:
             self.move = 'down'
             self.speed = -math.atan(distance_y)/config.side_y
             self.whatToMove = [self.move, self.speed]
         else:
-            self.whatToMove = []
-            pass
+            self.move = 'idle'
+            self.speed = -math.atan(distance_y)/config.side_y
+            self.whatToMove = [self.move, self.speed]
+            
         
     
     def returnTrackerSpeed(self):
