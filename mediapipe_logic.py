@@ -92,6 +92,8 @@ class Hands_Reckon:
                         #WIP
                         #self.particleSim()
                         pass
+                    if config.tracker == True:
+                        self.tracker()
                 self.ret = True
                 self.frame = frame.copy()
                 self.frame_is_rgb = True
