@@ -32,7 +32,8 @@ class Config:
     handCommands = True
     doGimbalReader = True
     doParticles = False #WIP
-    stream = True
+    stream = False
+    
 
 class Logic(Config):
     def __init__(self):

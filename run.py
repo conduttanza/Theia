@@ -100,10 +100,11 @@ def main():
                 '''
                 pygame.draw.polygon(screen,(0,G,0), shape, 3)
                 pygame.draw.line(screen,(0,0,B),shape[0],shape[1],3)
-                             
-                for point in shape:
-                    pygame.draw.circle(screen, (R,G,B), point, 10)
-                    '''
+                '''
+                if config.stream == False:
+                    for point in shape:
+                        pygame.draw.circle(screen, (R,0,0), point, 4)
+                    
             if config.doGimbalReader == True:
                 
                 gimbalx, gimbaly = recognizer.gimbalReader()

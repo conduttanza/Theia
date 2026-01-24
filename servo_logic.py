@@ -13,9 +13,9 @@ from threading import Thread
 GPIO_SERVO = 17
 
 # SG90 safe pulse range (microseconds)
-MIN_PW = 500     # ~0
-MID_PW = 1500    # ~90
-MAX_PW = 2000    # ~180
+MIN_PW = 500 # ~0
+MID_PW = 1500 # ~90
+MAX_PW = 2000 # ~180
 
 pi = pigpio.pi()
 
@@ -30,6 +30,7 @@ class GPIO():
 	def __init__(self):
 		self.angle = 90
 		self.reck = None
+		self.listToKnowWhatToMove = []
 		Thread(target=self.update, daemon=True).start()
 	
 	def update(self):
