@@ -32,7 +32,7 @@ class Config:
     handCommands = True
     doGimbalReader = True
     doParticles = False #WIP
-    stream = False
+    stream = True
     
 
 class Logic(Config):
@@ -80,7 +80,7 @@ class Logic(Config):
         if text == self.rememberLastText:
             text = None
         if text != None:
-            print(text)
+            #print(text)
             self.rememberLastText = text
         
     def openScripts(self, script_id):

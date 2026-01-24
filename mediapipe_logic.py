@@ -125,7 +125,7 @@ class Hands_Reckon:
         center = [config.side_x/2, config.side_y/2]
         distance_x = center[0]-handCenter.x*config.side_x
         distance_y = center[1]-handCenter.y*config.side_y
-        print(distance_x, distance_y)
+        #print(distance_x, distance_y)
         if distance_y > 50:
             self.move = 'up'
             self.speed = math.atan(distance_y)/config.side_y
