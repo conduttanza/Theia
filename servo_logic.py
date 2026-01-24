@@ -41,6 +41,7 @@ class GPIO():
 			from mediapipe_logic import Hands_Reckon
 			self.reck = Hands_Reckon()
 		while True:
+			time.sleep(0.5)
 			self.listToKnowWhatToMove = self.reck.returnTrackerSpeed()
 			print(self.listToKnowWhatToMove)
 			if len(self.listToKnowWhatToMove) > 1:
@@ -48,8 +49,7 @@ class GPIO():
 				if self.listToKnowWhatToMove[0] == 'up':
 					self.moveUp()
 				if self.listToKnowWhatToMove[0] == 'down':
-					self.moveDown()
-			time.sleep(0.1)
+					self.moveUp()
 		
 	def set_angle(self, angle):
 		"""Move servo to angle 180"""
