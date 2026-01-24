@@ -13,9 +13,12 @@ from threading import Thread
 GPIO_SERVO = 17
 
 # SG90 safe pulse range (microseconds)
-MIN_PW = 500 # ~0
-MID_PW = 1500 # ~90
-MAX_PW = 2000 # ~180
+MIN_PW = 500 
+# ~0
+MID_PW = 1500 
+# ~90
+MAX_PW = 2000 
+# ~180
 
 pi = pigpio.pi()
 
@@ -40,6 +43,7 @@ class GPIO():
 		self.listToKnowWhatToMove = self.reck.returnTrackerSpeed()
 		print(self.listToKnowWhatToMove)
 		if len(self.listToKnowWhatToMove) > 1:
+			print('second time',self.listToKnowWhatToMove)
 			if self.listToKnowWhatToMove[1] == 'up':
 				self.moveDown()
 			if self.listToKnowWhatToMove[1] == 'down':
