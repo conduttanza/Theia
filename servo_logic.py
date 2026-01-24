@@ -38,6 +38,7 @@ class GPIO():
 			from mediapipe_logic import Hands_Reckon
 			self.reck = Hands_Reckon()
 		self.listToKnowWhatToMove = self.reck.returnTrackerSpeed()
+		print(self.listToKnowWhatToMove)
 		if range(self.listToKnowWhatToMove) > 1:
 			if self.listToKnowWhatToMove[1] == 'up':
 				self.moveDown()
