@@ -46,9 +46,9 @@ class GPIO():
 			if len(self.listToKnowWhatToMove) > 1:
 				print('second time',self.listToKnowWhatToMove)
 				if self.listToKnowWhatToMove[0] == 'up':
-					self.moveDown()
-				if self.listToKnowWhatToMove[0] == 'down':
 					self.moveUp()
+				if self.listToKnowWhatToMove[0] == 'down':
+					self.moveDown()
 			time.sleep(0.1)
 		
 	def set_angle(self, angle):
